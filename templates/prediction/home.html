@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}LuffaLense{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="jumbotron bg-light p-3 rounded" style="background: linear-gradient(175deg, #ffffff 0%, #28a745 100%) !important;">
+                <img src="{% static 'asset/LuffaLense.png' %}" alt="Rice Vision Logo" style="width: 120px; height: auto;" class="d-block mx-auto mb-2">
+                <h1 class="text-black mb-4">LuffaLense Web App</h1>
+                <p class="lead text-black">
+LuffaLense is an easy-to-use mobile application designed to identify possible leaf diseases in both Smooth Luffa and Sponge Luffa plants through image analysis. The app currently supports the following disease scopes:<br>
+
+For Smooth Luffa — Alternaria, Angular Spot, Holed, Mosaic Virus, and Fresh (healthy) leaves.
+For Sponge Luffa — Insect Damage, Mosaic Disease, Downy Mildew, Fresh (healthy) leaves, and Bacterial Leaf Spot.
+
+To use the app, simply upload a clear image of the affected luffa leaf. LuffaLense will analyze the image and provide the most likely disease category, helping users recognize and respond to crop issues quickly and accurately.</p>
+                <hr class="my-3">
+                <a class="btn btn-lg" href="{% url 'predict' %}" role="button" style="background: linear-gradient(to right, #508d44, #abe061); color: white; border: none;">Get Started</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
