@@ -1,0 +1,11 @@
+.venv
+.vscode
+tflite/
+
+*.sav
+*.tflite
+__pycache__/
+csv_files/
+db.sqlite3
+model/
+
