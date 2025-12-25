@@ -2,7 +2,16 @@
 
 ## Project Summary
 
-LuffaLense is a web-based application that leverages deep learning technology to accurately classify diseases in Luffa plants. Built with Django as the backend framework, it provides an intuitive user interface for uploading Luffa leaf images and receiving instant disease classification results. The system uses an ensemble approach combining multiple pre-trained convolutional neural networks (MobileNetV2, VGG16, NASNetMobile) with XGBoost as a meta-learner to analyze images and predict disease types with high confidence scores. This tool is designed for farmers, agricultural professionals, and researchers to quickly identify and manage Luffa plant diseases, supporting applications in crop health monitoring and disease management.
+LuffaLense is a comprehensive web-based application for Luffa plant disease management and information. The platform combines advanced deep learning technology for disease classification with an AI-powered chat assistant specialized in Luffa plant knowledge.
+
+**Key Features:**
+- **Disease Classification**: AI-powered image analysis for identifying Luffa plant diseases
+- **AI Chat Assistant**: Specialized chatbot providing expert knowledge on Luffa cultivation, diseases, and care
+- **Dual Luffa Support**: Separate models for Smooth Luffa and Sponge Luffa varieties
+- **Real-time Analysis**: Instant disease detection with detailed information
+- **Expert Guidance**: 24/7 access to Luffa plant expertise through AI assistant
+
+Built with Django as the backend framework, the system uses an ensemble approach combining multiple pre-trained convolutional neural networks (MobileNetV2, VGG16, NASNetMobile) with XGBoost as a meta-learner for accurate disease classification. The AI chat assistant leverages OpenRouter API with DeepSeek models to provide specialized Luffa plant information.
 
 ## Screenshots
 
@@ -14,6 +23,9 @@ LuffaLense is a web-based application that leverages deep learning technology to
 
 ### After Prediction
 ![After Prediction](static/asset/after_prediction.png)
+
+### Chat Assistant
+![Chat Assistant](static/asset/chat.png)
 
 ## Components Used
 
@@ -37,8 +49,16 @@ The LuffaLense system is composed of several key components with their usage det
 - **Real-time Prediction**: Instant disease classification using ensemble ML models
 - **Two Luffa Types**: Supports classification for both Smooth Luffa and Sponge Luffa varieties
 - **Disease Information**: Provides detailed information about detected diseases
+- **AI Chat Assistant**: Specialized chatbot for Luffa plant questions and guidance
 - **Responsive Design**: Works on desktop and mobile devices
-- **REST API**: Provides API endpoints for potential integrations
+- **REST API**: Provides API endpoints for disease prediction and chat functionality
+
+### AI Chat Assistant
+- **Specialized Knowledge**: Expert information on Luffa cultivation, diseases, and care
+- **24/7 Availability**: Always accessible AI assistant for plant-related queries
+- **Topic Restriction**: Focused exclusively on Luffa plants and related topics
+- **Plain Text Responses**: Clean, readable responses without formatting
+- **Real-time Interaction**: Instant responses powered by DeepSeek AI models
 
 ## Installation
 
@@ -85,12 +105,21 @@ python manage.py runserver
 
 ## API Information
 
+### Disease Classification API
 - **API Endpoint**: Hugging Face Spaces API (https://Abid1012-luffa-disease-api.hf.space/predict/image)
 - **Architecture**: Ensemble of CNN models (MobileNetV2, VGG16, NASNetMobile) with XGBoost meta-learner hosted externally
 - **Training Dataset**: Luffa leaf images with various disease conditions
 - **Model Types**: Separate models for Smooth Luffa and Sponge Luffa
 - **Request Format**: POST with multipart/form-data containing image file and category parameter
 - **Response Format**: JSON with prediction, category, and status
+
+### AI Chat API
+- **API Provider**: OpenRouter API (https://openrouter.ai/api/v1)
+- **AI Model**: DeepSeek R1 (deepseek/deepseek-r1-0528:free)
+- **Specialization**: Luffa plant information and cultivation
+- **Request Format**: POST with JSON payload containing user message
+- **Response Format**: JSON with status and AI-generated response
+- **Features**: Topic restriction to Luffa plants, plain text responses
 
 ## Supported Diseases
 
@@ -115,6 +144,7 @@ python manage.py runserver
 - **Backend**: Django 5.x, Django REST Framework
 - **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
 - **ML API**: Hugging Face Spaces API
+- **AI Chat API**: OpenRouter API with DeepSeek models
 - **Image Processing**: PIL/Pillow
 - **Database**: SQLite (dev) / PostgreSQL (prod)
 - **Deployment**: Render, Gunicorn
@@ -132,7 +162,8 @@ Luffa_Prediction/
 ├── templates/               # HTML templates
 │   └── prediction/
 │       ├── home.html        # Home page template
-│       └── predict.html     # Prediction page template
+│       ├── predict.html     # Prediction page template
+│       └── chat.html        # Chat assistant page template
 ├── static/                  # CSS, JS, images
 │   ├── css/
 │   │   └── style.css        # Custom styles
