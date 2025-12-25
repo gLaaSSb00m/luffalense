@@ -2,6 +2,7 @@ import warnings
 warnings.filterwarnings("ignore")
 import requests
 import json
+import logging
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -33,35 +34,59 @@ DISEASE_INFO_DICT = {
 @csrf_exempt
 @never_cache
 def predict(request):
+    logger = logging.getLogger(__name__)
     if request.method == "POST":
         try:
             image_file = request.FILES.get("image")
             category = request.POST.get("model_type", "Smooth").capitalize()  # Default to Smooth, capitalize
 
+            # Map "Sponge" to "Spoonge" for API compatibility
+            if category == "Sponge":
+                category = "Spoonge"
+
+            logger.info(f"Received prediction request: category={category}, image_file={image_file.name if image_file else 'None'}")
+
             if not image_file:
+                logger.warning("No image provided in prediction request")
                 return JsonResponse({"error": "No image provided"}, status=400)
 
-            if category not in ["Smooth", "Sponge"]:
-                return JsonResponse({"error": "Invalid category. Must be 'Smooth' or 'Sponge'"}, status=400)
+            if category not in ["Smooth", "Spoonge"]:
+                logger.warning(f"Invalid category provided: {category}")
+                return JsonResponse({"error": "Invalid category. Must be 'Smooth' or 'Spoonge'"}, status=400)
 
             # Prepare API request
             url = f"{HF_API_BASE}?category={category}"
             files = {"file": image_file}
+            logger.info(f"Making API request to: {url}")
             response = requests.post(url, files=files)
 
             if response.status_code != 200:
+                logger.error(f"API request failed with status {response.status_code}: {response.text}")
                 return JsonResponse({"error": f"API request failed: {response.status_code}"}, status=500)
 
-            api_result = response.json()
+            try:
+                api_result = response.json()
+                logger.info(f"API response received: {api_result}")
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse API response as JSON: {response.text}, error: {str(e)}")
+                return JsonResponse({"error": "Invalid response from prediction API"}, status=500)
 
             if api_result.get("status") != "success":
+                logger.error(f"Prediction failed: API returned status {api_result.get('status')}")
                 return JsonResponse({"error": "Prediction failed"}, status=500)
 
             predicted_disease = api_result.get("prediction")
+            if not predicted_disease:
+                logger.error("Missing 'prediction' key in API response")
+                return JsonResponse({"error": "Prediction data missing from API response"}, status=500)
+
             category = api_result.get("category")
+            if not category:
+                logger.warning("Missing 'category' key in API response, using request category")
 
             # Get disease info
             info = DISEASE_INFO_DICT.get(predicted_disease, "No info available.")
+            logger.info(f"Prediction successful: disease={predicted_disease}, category={category}")
 
             return JsonResponse({
                 "prediction": predicted_disease,
@@ -71,9 +96,8 @@ def predict(request):
             })
 
         except Exception as e:
-            import logging
-            logging.error(f"Error in predict function: {str(e)}", exc_info=True)
-            return JsonResponse({"error": str(e)}, status=500)
+            logger.error(f"Unexpected error in predict function: {str(e)}", exc_info=True)
+            return JsonResponse({"error": "An unexpected error occurred"}, status=500)
 
     return render(request, "prediction/predict.html")
 
