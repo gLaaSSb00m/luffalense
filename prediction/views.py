@@ -3,6 +3,8 @@ warnings.filterwarnings("ignore")
 import requests
 import json
 import logging
+import re
+import os
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -31,6 +33,27 @@ DISEASE_INFO_DICT = {
     'Mosaic disease': 'Mosaic disease causes irregular patterns and discoloration on leaves.'
 }
 
+# ====================================================
+# Markdown Removal Function
+# ====================================================
+def remove_markdown(text):
+    # Remove bold/italic markdown
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)  # Bold
+    text = re.sub(r'\*(.*?)\*', r'\1', text)      # Italic
+    text = re.sub(r'_(.*?)_', r'\1', text)        # Italic underscore
+    text = re.sub(r'`(.*?)`', r'\1', text)        # Inline code
+    # Remove headers
+    text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
+    # Remove bullet points
+    text = re.sub(r'^[\*\-\+]\s*', '', text, flags=re.MULTILINE)
+    # Remove numbered lists
+    text = re.sub(r'^\d+\.\s*', '', text, flags=re.MULTILINE)
+    # Remove links
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    # Remove extra newlines
+    text = re.sub(r'\n\s*\n', '\n\n', text)
+    return text.strip()
+
 @csrf_exempt
 @never_cache
 def predict(request):
@@ -54,11 +77,21 @@ def predict(request):
                 logger.warning(f"Invalid category provided: {category}")
                 return JsonResponse({"error": "Invalid category. Must be 'Smooth' or 'Spoonge'"}, status=400)
 
-            # Prepare API request
+            # Save the uploaded image to media/predictions/current.jpg
+            media_dir = os.path.join(settings.MEDIA_ROOT, 'predictions')
+            os.makedirs(media_dir, exist_ok=True)
+            image_path = os.path.join(media_dir, 'current.jpg')
+            with open(image_path, 'wb+') as destination:
+                for chunk in image_file.chunks():
+                    destination.write(chunk)
+            logger.info(f"Image saved to: {image_path}")
+
+            # Prepare API request using the saved file
             url = f"{HF_API_BASE}?category={category}"
-            files = {"file": image_file}
-            logger.info(f"Making API request to: {url}")
-            response = requests.post(url, files=files)
+            with open(image_path, 'rb') as f:
+                files = {"file": f}
+                logger.info(f"Making API request to: {url}")
+                response = requests.post(url, files=files)
 
             if response.status_code != 200:
                 logger.error(f"API request failed with status {response.status_code}: {response.text}")
@@ -142,9 +175,12 @@ def chat_api(request):
             # Extract the response content
             bot_response = response.choices[0].message.content
 
+            # Remove markdown formatting
+            cleaned_response = remove_markdown(bot_response)
+
             return JsonResponse({
                 "status": "success",
-                "response": bot_response
+                "response": cleaned_response
             })
 
         except Exception as e:
