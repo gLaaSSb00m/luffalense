@@ -157,3 +157,6 @@ CORS_ALLOW_CREDENTIALS = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# OpenRouter API Configuration
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "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")

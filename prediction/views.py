@@ -1,10 +1,13 @@
 import warnings
 warnings.filterwarnings("ignore")
 import requests
+import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
+from django.conf import settings
+import openai
 
 # ====================================================
 # Hugging Face API Configuration
@@ -76,3 +79,53 @@ def predict(request):
 
 def home(request):
     return render(request, "prediction/home.html")
+
+def chat(request):
+    return render(request, "prediction/chat.html")
+
+@csrf_exempt
+def chat_api(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user_message = data.get("message", "")
+
+            if not user_message:
+                return JsonResponse({"error": "No message provided"}, status=400)
+
+            # Initialize OpenAI client with OpenRouter
+            client = openai.OpenAI(
+                api_key=settings.OPENROUTER_API_KEY,
+                base_url="https://openrouter.ai/api/v1"
+            )
+
+            # Create chat completion
+            response = client.chat.completions.create(
+                model="deepseek/deepseek-r1-0528:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a specialized assistant for Luffa plant information. You can only provide information about Luffa plants, their cultivation, diseases, health, and related topics. If the user asks about anything else, politely decline and redirect the conversation back to Luffa plants. Always respond in plain text without using markdown formatting, bold text, italics, or special characters like emojis."
+                    },
+                    {
+                        "role": "user",
+                        "content": user_message
+                    }
+                ],
+                stream=False
+            )
+
+            # Extract the response content
+            bot_response = response.choices[0].message.content
+
+            return JsonResponse({
+                "status": "success",
+                "response": bot_response
+            })
+
+        except Exception as e:
+            import logging
+            logging.error(f"Error in chat_api function: {str(e)}", exc_info=True)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Method not allowed"}, status=405)
