@@ -1,244 +1,172 @@
 # LuffaLense
 
-## Project Summary
+AI-powered web app for Luffa leaf disease recognition with a Hugging Face-hosted prediction service and an optional AI chat assistant.
 
-LuffaLense is a comprehensive web-based application for Luffa plant disease management and information. The platform combines advanced deep learning technology for disease classification with an AI-powered chat assistant specialized in Luffa plant knowledge.
+## What this project does
+- Classifies Luffa leaf images using a remote model hosted on Hugging Face Spaces
+- Supports two categories (models): Smooth Luffa and Sponge Luffa
+- Returns human-friendly disease info alongside the prediction
+- Optional AI chat assistant specialized in Luffa topics (via OpenRouter)
 
-**Key Features:**
-- **Disease Classification**: AI-powered image analysis for identifying Luffa plant diseases
-- **AI Chat Assistant**: Specialized chatbot providing expert knowledge on Luffa cultivation, diseases, and care
-- **Dual Luffa Support**: Separate models for Smooth Luffa and Sponge Luffa varieties
-- **Real-time Analysis**: Instant disease detection with detailed information
-- **Expert Guidance**: 24/7 access to Luffa plant expertise through AI assistant
+## Architecture overview
+- Web framework: Django 5
+- Prediction model: External Hugging Face Space endpoint
+  - Base URL used by the app: https://Abid1012-luffa-disease-api.hf.space/predict/image
+  - Category query parameter selects the model: Smooth or Spoonge
+  - Image is sent as multipart/form-data under the file field name file
+- Image processing: Pillow (PIL)
+- Database: SQLite (dev) / PostgreSQL (prod)
+- Frontend: HTML/CSS/JS (+ Bootstrap)
 
-Built with Django as the backend framework, the system uses an ensemble approach combining multiple pre-trained convolutional neural networks (MobileNetV2, VGG16, NASNetMobile) with XGBoost as a meta-learner for accurate disease classification. The AI chat assistant leverages OpenRouter API with DeepSeek models to provide specialized Luffa plant information.
+## Quick start (local)
+1) Clone and enter the project
 
-## Screenshots
+   git clone <repository-url>
+   cd Luffa_Prediction
 
-### Home Page
-![Home Page](static/asset/home.png)
+2) Create a virtual environment and activate it
 
-### Before Prediction
-![Before Prediction](static/asset/before_prediction.png)
+   python -m venv .venv
+   .venv\Scripts\activate   # Windows
+   # or
+   source .venv/bin/activate  # macOS/Linux
 
-### After Prediction
-![After Prediction](static/asset/after_prediction.png)
+3) Install dependencies
 
-### Chat Assistant
-![Chat Assistant](static/asset/chat.png)
+   pip install -r requirements.txt
 
-## Components Used
+4) Run migrations
 
-The LuffaLense system is composed of several key components with their usage details:
+   python manage.py migrate
 
-- **Backend Framework**: Django 5.x - Handles server-side logic, routing, and API endpoints
-- **Machine Learning API**: Hugging Face Spaces API - External API for disease prediction using pre-trained models
-- **Image Processing**: PIL/Pillow - Library for image manipulation and preprocessing
-- **Database**: SQLite (development) / PostgreSQL (production) - Used as the default database for storing application data
-- **Frontend Technologies**:
-  - HTML5 - Markup for structuring web pages
-  - CSS3 - Styling for responsive and user-friendly design
-  - JavaScript - Adds client-side interactivity and dynamic content
-- **Web Server**: Django's built-in development server for development; Gunicorn for production deployment
-- **API Integration**: Requests library for HTTP communication with Hugging Face API
+5) Start the dev server
 
-## 🚀 Features
+   python manage.py runserver
 
-### Web Application
-- **Image Upload**: Users can upload Luffa leaf images for disease classification
-- **Real-time Prediction**: Instant disease classification using ensemble ML models
-- **Two Luffa Types**: Supports classification for both Smooth Luffa and Sponge Luffa varieties
-- **Disease Information**: Provides detailed information about detected diseases
-- **AI Chat Assistant**: Specialized chatbot for Luffa plant questions and guidance
-- **Responsive Design**: Works on desktop and mobile devices
-- **REST API**: Provides API endpoints for disease prediction and chat functionality
+Then open http://localhost:8000
 
-### AI Chat Assistant
-- **Specialized Knowledge**: Expert information on Luffa cultivation, diseases, and care
-- **24/7 Availability**: Always accessible AI assistant for plant-related queries
-- **Topic Restriction**: Focused exclusively on Luffa plants and related topics
-- **Plain Text Responses**: Clean, readable responses without formatting
-- **Real-time Interaction**: Instant responses powered by DeepSeek AI models
+## Using the prediction feature
+From the web UI:
+- Go to Get Started
+- Choose model type: Smooth or Sponge
+- Upload a clear image of a Luffa leaf
+- Receive the predicted disease and additional information
 
-## Installation
+From the Django API endpoint (local):
+- Endpoint: POST http://localhost:8000/predict/
+- Form fields:
+  - model_type: Smooth or Sponge (Sponge is internally mapped to Spoonge)
+  - image: file upload
+- Response shape:
+  {
+    "prediction": "<disease>",
+    "category": "Smooth|Spoonge",
+    "disease_info": "<human-readable details>",
+    "status": "success"
+  }
 
-### Web Application
+Notes
+- The backend saves uploads to media/predictions/current.jpg and forwards the image to the Hugging Face Space.
+- If you pass model_type=Sponge, the backend converts it to Spoonge to match the Space API.
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd Luffa_Prediction
-```
+## Hugging Face Space prediction API
+This project relies on a remote prediction API hosted on Hugging Face Spaces.
 
-2. Create and activate virtual environment:
-```bash
-python -m venv .venv
-.venv\Scripts\activate  # On Windows
-# or
-source .venv/bin/activate  # On macOS/Linux
-```
+Base URL used by the app
+- https://Abid1012-luffa-disease-api.hf.space/predict/image
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+Request
+- Method: POST
+- Query param: category=Smooth or category=Spoonge
+- Body: multipart/form-data with file=<image binary>
 
-4. Run migrations:
-```bash
-python manage.py migrate
-```
+Example with curl (calling the HF Space directly)
 
-5. Start the development server:
-```bash
-python manage.py runserver
-```
+  curl -X POST "https://Abid1012-luffa-disease-api.hf.space/predict/image?category=Smooth" \
+       -H "Accept: application/json" \
+       -F "file=@/path/to/leaf.jpg"
 
-## Usage
+Example with Python (requests)
 
-### Web
+  import requests
 
-1. Open your browser and navigate to `http://localhost:8000`
-2. Click on "Get Started" to go to the prediction page
-3. Select the Luffa type (Smooth or Sponge)
-4. Upload a clear image of the Luffa leaf
-5. View the classification results with disease information
+  url = "https://Abid1012-luffa-disease-api.hf.space/predict/image?category=Spoonge"
+  with open("/path/to/leaf.jpg", "rb") as f:
+      files = {"file": f}
+      r = requests.post(url, files=files)
+      r.raise_for_status()
+      print(r.json())
 
-## API Information
+Expected successful response
+- HTTP 200
+- JSON body:
+  {
+    "status": "success",
+    "prediction": "<disease label>",
+    "category": "Smooth|Spoonge"
+  }
 
-### Disease Classification API
-- **API Endpoint**: Hugging Face Spaces API (https://Abid1012-luffa-disease-api.hf.space/predict/image)
-- **Architecture**: Ensemble of CNN models (MobileNetV2, VGG16, NASNetMobile) with XGBoost meta-learner hosted externally
-- **Training Dataset**: Luffa leaf images with various disease conditions
-- **Model Types**: Separate models for Smooth Luffa and Sponge Luffa
-- **Request Format**: POST with multipart/form-data containing image file and category parameter
-- **Response Format**: JSON with prediction, category, and status
+Common errors
+- 400 invalid input (e.g., missing image)
+- 500 failure to get a prediction (e.g., model side issue)
 
-### AI Chat API
-- **API Provider**: OpenRouter API (https://openrouter.ai/api/v1)
-- **AI Model**: DeepSeek R1 (deepseek/deepseek-r1-0528:free)
-- **Specialization**: Luffa plant information and cultivation
-- **Request Format**: POST with JSON payload containing user message
-- **Response Format**: JSON with status and AI-generated response
-- **Features**: Topic restriction to Luffa plants, plain text responses
+Authentication
+- The referenced Space is public and does not require a token. If your Space is private, add Authorization headers as needed.
 
-## Supported Diseases
+## Supported labels
+Smooth Luffa
+- Alternaria
+- Angular Spot
+- Fresh
+- Holed
+- Mosaic Virus
+- Others
 
-### Smooth Luffa
-- **Alternaria**: Fungal disease causing dark spots on leaves
-- **Angular Spot**: Bacterial disease with angular water-soaked lesions
-- **Fresh**: Healthy leaves with no visible disease signs
-- **Holed**: Physical damage or insect holes in leaves
-- **Mosaic Virus**: Viral disease causing mottled patterns
-- **Others**: Unidentified diseases or conditions
+Sponge Luffa
+- Bacteria Leaf Spot
+- Downy Mildew
+- Fresh
+- Insect
+- Mosaic disease
+- Others
 
-### Sponge Luffa
-- **Bacteria Leaf Spot**: Small, dark lesions with yellow halos
-- **Downy Mildew**: White or gray patches on leaf undersides
-- **Fresh**: Healthy leaves with no visible disease signs
-- **Insect**: Signs of insect damage (holes, chewing marks)
-- **Mosaic disease**: Irregular patterns and discoloration
-- **Others**: Unidentified diseases or conditions
+## Configuration
+- Hugging Face endpoint is defined in prediction/views.py as HF_API_BASE
+  - Default: https://Abid1012-luffa-disease-api.hf.space/predict/image
+  - To change it, update HF_API_BASE and restart the server.
+- Chat assistant (optional): requires an OpenRouter API key in your Django settings (OPENROUTER_API_KEY)
 
-## Technical Stack
+## Development commands
+- Run tests
 
-- **Backend**: Django 5.x, Django REST Framework
-- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
-- **ML API**: Hugging Face Spaces API
-- **AI Chat API**: OpenRouter API with DeepSeek models
-- **Image Processing**: PIL/Pillow
-- **Database**: SQLite (dev) / PostgreSQL (prod)
-- **Deployment**: Render, Gunicorn
+  python manage.py test prediction
 
-## Project Structure
+- Collect static (if needed)
 
-```
-Luffa_Prediction/
-├── rice_prediction/          # Django project settings
-├── prediction/               # Main app for disease classification
-│   ├── views.py             # Prediction logic and views
-│   ├── models.py            # Database models (if any)
-│   ├── urls.py              # URL configurations
-│   └── ...
-├── templates/               # HTML templates
-│   └── prediction/
-│       ├── home.html        # Home page template
-│       ├── predict.html     # Prediction page template
-│       └── chat.html        # Chat assistant page template
-├── static/                  # CSS, JS, images
-│   ├── css/
-│   │   └── style.css        # Custom styles
-│   └── asset/               # Images and assets
-├── model/                   # ML models
-│   ├── Luffa_Smooth/        # Smooth Luffa models
-│   └── Luffa Spoonge/       # Sponge Luffa models
-├── tflite/                  # Converted TFLite models
-├── media/                   # User uploaded images
-├── requirements.txt         # Python dependencies
-├── manage.py                # Django management script
-├── convert_luffa_models.py  # TFLite conversion script
-├── Procfile                 # Heroku/Render deployment
-├── render.yaml              # Render deployment config
-└── README.md
-```
-
-## Development
-
-### Converting Models to TFLite
-
-To convert Keras models to TensorFlow Lite format for mobile deployment:
-
-```bash
-python convert_luffa_models.py
-```
-
-This will convert all models in the `model/` directory and save them in the `tflite/` directory.
-
-### Running Tests
-```bash
-python manage.py test prediction
-```
-
-### Adding New Diseases or Luffa Types
-To add support for new diseases or Luffa varieties:
-1. Collect and label new training data
-2. Retrain the CNN models and XGBoost meta-learner
-3. Update the class labels in `prediction/views.py`
-4. Add disease information to the hardcoded dictionary
-5. Update the frontend if needed
+  python manage.py collectstatic
 
 ## Deployment
+- The project includes a render.yaml for deployment on Render. A typical setup involves:
+  - Gunicorn WSGI server
+  - PostgreSQL database
+  - WhiteNoise for static files
+- For local production-like run (where supported):
 
-### Render Deployment
+  pip install gunicorn
+  gunicorn rice_prediction.wsgi:application --bind 0.0.0.0:8000
 
-The application is configured for deployment on Render with:
-- Web service using Gunicorn
-- PostgreSQL database
-- Static files served via WhiteNoise
-- Environment variables for configuration
+## Project structure (high level)
+Luffa_Prediction/
+├── rice_prediction/         Django project settings
+├── prediction/              App with views and API integration
+├── templates/               HTML templates
+├── static/                  CSS/JS/assets
+├── media/                   Uploaded images (runtime)
+├── requirements.txt         Python deps
+├── manage.py                Django CLI
+└── README.md                This file
 
-### Local Production Setup
-
-For production deployment locally:
-
-```bash
-pip install gunicorn
-gunicorn rice_prediction.wsgi:application --bind 0.0.0.0:8000
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
-5. Create a Pull Request
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## Credits
-
-- **Developed by**: ABID
-- **Supervised by**: [Mii](https://annex.bubt.edu.bd/mii/?chapter=profile)
-- **© 2025 LuffaLense. All rights reserved.**
+## Credits and license
+- Developed by: ABID
+- Supervised by: Mii (https://annex.bubt.edu.bd/mii/?chapter=profile)
+- License: MIT
