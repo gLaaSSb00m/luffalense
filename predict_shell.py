@@ -2,7 +2,7 @@ import os
 import django
 
 # Set up Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rice_prediction.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'luffa_prediction.settings')
 django.setup()
 
 from prediction.views import load_all_models, load_meta_model, preprocess_for_ensemble, CLASS_LABELS

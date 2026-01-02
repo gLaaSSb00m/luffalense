@@ -9,7 +9,7 @@ services:
       pip install -r requirements.txt
       python manage.py migrate
       python manage.py collectstatic --noinput
-    startCommand: gunicorn rice_prediction.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 300
+    startCommand: gunicorn luffa_prediction.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 300
     envVars:
       - key: DEBUG
         value: "False"

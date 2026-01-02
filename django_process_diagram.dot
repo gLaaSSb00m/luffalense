@@ -1,4 +1,4 @@
-digraph django_rice_prediction_process {
+digraph django_luffa_prediction_process {
     rankdir=TB;
     node [shape=box, style=filled, color=lightgreen];
 

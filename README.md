@@ -153,11 +153,11 @@ Sponge Luffa
 - For local production-like run (where supported):
 
   pip install gunicorn
-  gunicorn rice_prediction.wsgi:application --bind 0.0.0.0:8000
+  gunicorn luffa_prediction.wsgi:application --bind 0.0.0.0:8000
 
 ## Project structure (high level)
 Luffa_Prediction/
-├── rice_prediction/         Django project settings
+├── luffa_prediction/         Django project settings
 ├── prediction/              App with views and API integration
 ├── templates/               HTML templates
 ├── static/                  CSS/JS/assets
