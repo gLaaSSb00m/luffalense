@@ -159,4 +159,4 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # OpenRouter API Configuration
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "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")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "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")
